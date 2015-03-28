@@ -54,34 +54,81 @@ function ChildFx(){
 
 	cFx.addNode = function( args ){
 
-		var temp_name 		= cFx.localData.name;
-			temp_name.push( args.name );
-			cFx.localData.name = temp_name;
+		if( args.nodes ){
 
-		var temp_locations 	= cFx.localData.locations;
-			temp_locations.push( args.locations );
-			cFx.localData.locations = temp_locations;
+			var nodes = args.nodes.length,
+				i = 0;
 
-		var temp_functions 	= cFx.localData.func;
-			temp_functions.push( args.func_names );
-			cFx.localData.func = temp_functions;
+			for( ; i < nodes; i++ ){
+
+				var temp_name 		= cFx.localData.name;
+					temp_name.push( args.nodes[i].name );
+					cFx.localData.name = temp_name;
+
+				var temp_locations 	= cFx.localData.locations;
+					temp_locations.push( args.nodes[i].locations );
+					cFx.localData.locations = temp_locations;
+
+				var temp_functions 	= cFx.localData.func;
+					temp_functions.push( args.nodes[i].func_names );
+					cFx.localData.func = temp_functions;
+			}
+		} else {
+
+			var temp_name 		= cFx.localData.name;
+				temp_name.push( args.name );
+				cFx.localData.name = temp_name;
+
+			var temp_locations 	= cFx.localData.locations;
+				temp_locations.push( args.locations );
+				cFx.localData.locations = temp_locations;
+
+			var temp_functions 	= cFx.localData.func;
+				temp_functions.push( args.func_names );
+				cFx.localData.func = temp_functions;
+		}
 	};
 
 	cFx.addFunction = function( args ){
 
-		var temp_name = cFx.functions.name;
-		var temp_selc = cFx.functions.selector;
-		var temp_func = cFx.functions.func;
+		if( args.functions ){
 
-		temp_name.push( args.name );
-		temp_selc.push( args.selector );
-		temp_func.push( args.func );
+			var functions = args.functions.length,
+				i = 0;
 
-		cFx.functions = {
-			name : temp_name,
-			selector : temp_selc,
-			func : temp_func
-		};
+			for( ; i < functions; i++ ){
+
+				var temp_name = cFx.functions.name;
+				var temp_selc = cFx.functions.selector;
+				var temp_func = cFx.functions.func;
+
+				temp_name.push( args.functions[i].name );
+				temp_selc.push( args.functions[i].selector );
+				temp_func.push( args.functions[i].func );
+
+				cFx.functions = {
+					name : temp_name,
+					selector : temp_selc,
+					func : temp_func
+				};
+			}
+		} else {
+
+			var temp_name = cFx.functions.name;
+			var temp_selc = cFx.functions.selector;
+			var temp_func = cFx.functions.func;
+
+			temp_name.push( args.name );
+			temp_selc.push( args.selector );
+			temp_func.push( args.func );
+
+			cFx.functions = {
+				name : temp_name,
+				selector : temp_selc,
+				func : temp_func
+			};
+		}
+
 	};
 	
 	cFx.init = function( name ){
@@ -97,6 +144,10 @@ function ChildFx(){
 				if( cFx.checkBodyClass( that.locations ) ){
 
 					index = cFx.functions.func[cFx.functions.name.indexOf( that.func[i] )];
+
+					if( typeof index == 'string' ){
+						index = eval( '('+ index +')' );
+					}
 
 					if( index ){
 						
