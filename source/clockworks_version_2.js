@@ -1,279 +1,202 @@
-var Clockworks = function(){
+'use strict';
 
-	this.name 		= 'Clockworks';
+var ClockWorks = function () {
 
-	this.version 	= 'Version 2.0';
+	var self = this;
 
-	this.help 		= {
-		addNode 	: function(){
-			console.log( 'vars.addNode( { name:name, locations:[], func_names:[] } );' );
-		},
-		addFunction : function(){
-			console.log( 'vars.addFunction( { name:name, selector:selector, func:function(){} }, true||false );' );
-		}
-	};
+	self.nodes 			= [];
+	
+	self.funcs 			= [];
+
+	self.custom_event 	= [];
+};
+
+ClockWorks.prototype.addNode = function ( args ) {
+	
+	var self 		= this,
+		temp_node 	= args;
+
+	self.nodes.push( temp_node );
 };
 
 
-// 	Attributes
-Clockworks.prototype.nodes = [];
-Clockworks.prototype.funcs = [];
+ClockWorks.prototype.addFunction = function ( args ) {
+	
+	var self 			= this,
+		temp_functions 	= args;
 
-
-/*	public function addNode
- *	@param args 			( object ) required !
- *		- args.name 		( string ) required !
- *		- args.locations 	( array  ) required !
- *		- args.func_names 	( array  ) required !
- */
-Clockworks.prototype.addNode = function( args ){
-
-	this.nodes.push( { 
-		name 		: args.name,
-		locations 	: args.locations,
-		func_names 	: args.func_names
-	} );
+	self.funcs.push( temp_functions );
 };
 
 
-/*	public function addFunction
- *	@param args 			( object ) required !
- *		- args.name 		( string ) required !
- *		- args.selector 	( string ) required !
- *		- args.func 		( function ) required !
- *	@param latch 			( bool ) optional
- */
-Clockworks.prototype.addFunction = function( args, latch ){
-
-	this.funcs.push( {
-		name 		: args.name,
-		selector 	: args.selector,
-		func 		: args.func,
-		latch 		: ( latch ? latch : false )
-	} );
-};
-
-
-/*	helper function _validate
- * 	@param cmd 				( string ) required !
- * 	@param feed				( var 	 ) required !
- * 	@param vars 			( var 	 ) optional
- */
-Clockworks.prototype._validate = function( cmd, feed, vars ){
-
-	var className 	= this.name,
-		prefix 		= className +' error: ';
-		_exist 		= function( ctx ){
-			console.log( prefix + feed +' is not a valid '+ ctx +'.' );
-		},
-		_duplicate 	= function( ctx ){
-			console.log( prefix + ctx +' '+ feed +' is duplicated.' );
+ClockWorks.prototype.addEvent = function ( args, func ) {
+	
+	var self 		= this,
+		temp_event 	= {
+			name : 'args',
+			func : func()
 		};
 
-	switch( cmd ){
-
-
-		case 'exist_init':
-
-			if( vars.length > 0 ){
-
-				return true;
-			} else {
-
-				_exist( 'node' );
-
-				return false;
-			}
-			break;
-
-
-		case 'duplicated_node':
-
-			if( vars.length > 1 ){
-
-				_duplicate( 'node' );
-
-				return true;
-			} else {
-
-				return false;
-			}
-			break;
-
-
-		case 'valid_bodyClass':
-
-			var check = false,
-				i = 0,
-				b_class = vars.bodyClass,
-				n_class = vars.nodeClass;
-
-
-			for( ; i < n_class.length; i++ ){
-
-				if( b_class.contains( n_class[i] ) ){
-
-					check = true;
-				}
-			}
-
-			return check;
-
-			break;
-	};
+	self.custom_event.push( temp_event );
 };
 
 
-/*	helper function _getNode
- *	@param nodeName 		( string ) required !
- */ 
-Clockworks.prototype._getNode = function( nodeName ){
+ClockWorks.prototype.getNode = function ( name_node ) {
 
-	var node = this.nodes.filter( function( obj ) {
+	var self = this,
+		i = 0,
+		index;
 
-		return obj.name == nodeName;
-	} );
+	for( ; i < self.nodes.length; i++ ) {
 
-	return node;
+		for( var name in self.nodes[i] ) {
+
+		    if( self.nodes[i].hasOwnProperty( name ) ) {
+
+		        if( self.nodes[i][name] === name_node ) {
+		            
+		            index = i;
+		        }
+		    }
+		}
+	}
+
+	return self.nodes[index];
 };
 
 
-/*	helper function _getFunc
- *	@param funcName 		( string ) required !
- */ 
-Clockworks.prototype._getFunc = function( funcName ){
+ClockWorks.prototype.checkBodyClass = function ( class_array ) {
 
-	var func = this.funcs.filter( function( obj ) {
+	var self = this,
+		body = document.getElementsByTagName( 'body' ),
+		check = false,
+		h = 0;
 
-		return obj.name == funcName;
-	} );
+	for ( ; h < class_array.length; h++ ) {
 
-	return func;
-};
+		for ( var i = 0; i < body[0].classList.length; i++ ) {
 
+			if ( body[0].classList[i] === class_array[h] ) {
 
-/*	helper function _getSingle
- *	@param obj 				( obj ) required !
- */ 
-Clockworks.prototype._getSingle = function( obj ){
-
-	var obj = obj[0];
-
-	return obj;
-};
-
-
-/*	public function getFunc
- *	@param funcName 		( string ) required !
- */ 
-Clockworks.prototype.getFunc = function( funcName ){
-
-	var func = this.funcs.filter( function( obj ) {
-
-			return obj.name == funcName;
-		} ),
-		temp_func = this._getSingle( func );
-
-	return temp_func;
-};
-
-
-/*	public function init
- *	@param nodeName 		( string ) required !
- */
-Clockworks.prototype.init = function( nodeName ){
-
-	var node 		= this._getNode( nodeName ),
-		body 		= document.querySelector( 'body' ),
-		bodyClass 	= body.classList,
-		i 			= 0;
-
-	if( this._validate( 'exist_init', nodeName, node ) ){
-
-		if( ! this._validate( 'duplicated_node', nodeName, node) ){
-
-			var objNode = node[0],
-				i = 0,
-				temp_func,
-				el,
-				el_selected,
-				func,
-				func_ready;
-
-			if( this._validate( 'valid_bodyClass', nodeName, { bodyClass: bodyClass, nodeClass: objNode.locations } ) ){
-
-				document.clockworks_func 	= [];
-
-				document.clockworks_el 		= [];
-
-				for( ; i < objNode.func_names.length; i++ ){
-
-					temp_func 	= this._getSingle( this._getFunc( objNode.func_names[i] ) );
-
-					func 		= temp_func.func;
-
-					el 			= document.querySelectorAll( temp_func.selector );
-
-					if( el.length > 0 ){
-
-						if( temp_func.latch ){
-
-							document.clockworks_func.push( func );
-
-							document.clockworks_el.push( el );
-
-							if( window.jQuery ){
-
-								jQuery( document ).ready( function( $, func ) {
-
-									func_ready 	= document.clockworks_func[0];
-
-									func_el 	= document.clockworks_el[0];
-
-									func_ready( $, func_el );
-
-									document.clockworks_func.splice( 0, 1 );
-
-									document.clockworks_el.splice( 0, 1 );
-								} );
-							}
-						} else {
-
-							temp_func.func( el );
-						}
-					}
-				};
+				check = true;
 			}
 		}
 	}
+
+	return check;
+}
+
+
+ClockWorks.prototype.getFunctions = function ( func_array ) {
+
+	var self = this,
+		temp_func = [],
+		h = 0;
+
+	for( ; h < func_array.length; h++ ) {
+
+		for( var i = 0; i < self.funcs.length; i++ ){
+
+			for( var name in self.funcs[i] ) {
+
+			    if( self.funcs[i].hasOwnProperty( name ) ) {
+
+			        if( self.funcs[i][name] === func_array[h] ) {
+			            
+			            temp_func.push( self.funcs[i] );
+			        }
+			    }
+			}
+		}
+	}
+
+	return temp_func;
+}
+
+
+ClockWorks.prototype.before_loop = function () {
+	console.log( 'before_loop' );
 };
 
+ClockWorks.prototype.after_loop = function () {
+	console.log( 'after_loop' );
+};
 
-/* 	
-//addNode template
-//-----------------
-crk.addNode( {
-	name 		: 'string',
-	locations 	: [array],
-	func_names 	: [array]
-} );
-//-----------------
+ClockWorks.prototype.before_init = function () {
+	console.log( 'before_init' );
+};
 
+ClockWorks.prototype.after_init = function () {
+	console.log( 'after_init' );
+};
 
-//addFunction template
-//-----------------
-crk.addFunction( {
-	name 		: 'string',
-	selector 	: 'css_selector',
-	func 	 	: function(){
-		console.log( 'new function here.' );
+ClockWorks.prototype.initialize = function ( name, jQuery ) {
+
+	var self 		= this,
+		node 		= self.getNode( name ),
+		funcs 		= self.getFunctions( node.func_names ),
+		bodyClass 	= ( node.locations[0] === 'all' ? true : self.checkBodyClass( node.locations ) ),
+		temp_func,
+		temp_el;
+
+	if ( bodyClass ) {
+
+		self.before_loop();
+
+		for ( var i = 0; i < funcs.length; i++ ) {
+
+			temp_el = document.querySelectorAll( funcs[i].el );
+
+			if ( temp_el.length > 0 ) {
+
+				temp_func = funcs[i].func;
+
+				self.before_init();
+
+				temp_func( temp_el, jQuery );
+
+				self.after_init();
+			}
+		}
+
+		self.after_loop();
 	}
-}, boolean );
-//-----------------
+};
 
+/* * * * * * * * * * * 
 
-//init template
-//-----------------
-crk.init( 'string' );
-//-----------------
- */
+var widget_1 = new ClockWorks;
+
+widget_1.before_loop = function() {
+	console.log( 'new before_loop' );
+};
+
+widget_1.after_loop = function() {
+	console.log( 'new after_loop' );
+};
+
+widget_1.before_init = function() {
+	console.log( 'new before_init' );
+};
+
+widget_1.after_init = function() {
+	console.log( 'new after_init' );
+};
+
+widget_1.addNode( {
+	name  		: 'node_1',
+	locations 	: ['home'],
+	func_names 	: ['func_1']
+} );
+
+widget_1.addFunction( {
+	name 		: 'func_1',
+	el 			: '#wrapper',
+	func 		: function ( el, $ ) {
+		$( el[0] ).remove();
+	}
+} );
+
+widget_1.initialize( 'node_1', jQuery );
+
+* * * * * * * * * * */
